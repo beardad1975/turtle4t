@@ -140,23 +140,23 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
 _tg_utilities = ['write_docstringdict', 'done']
 
 #### 4t tc aliases
-_4t_aliases_dict = {
-    'forward' : '向前',
-    'back' : '向後',
-    'right' : '右轉',
-    'left' : '左轉',
-    'heading' : '面朝',
-    'home' : '回出發點',
-    'goto' : '定位到',
-    'begin_fill' : '開始填色',
-    'end_fill' : '停止填色',
-    'pencolor' : '畫筆顏色',
-    'fillcolor' : '填充顏色',
-    'pensize' : '筆跡寬度',
-    'penup' : '停筆',
-    'pendown' : '下筆',
-    'speed' : '速度',
-}
+# _4t_aliases_dict = {
+#     'forward' : '向前',
+#     'back' : '向後',
+#     'right' : '右轉',
+#     'left' : '左轉',
+#     'heading' : '面朝',
+#     'home' : '回出發點',
+#     'goto' : '定位到',
+#     'begin_fill' : '開始填色',
+#     'end_fill' : '停止填色',
+#     'pencolor' : '畫筆顏色',
+#     'fillcolor' : '填充顏色',
+#     'pensize' : '筆跡寬度',
+#     'penup' : '停筆',
+#     'pendown' : '下筆',
+#     'speed' : '速度',
+# }
 
 
 __all__ = (_tg_classes + _tg_screen_functions + _tg_turtle_functions +
