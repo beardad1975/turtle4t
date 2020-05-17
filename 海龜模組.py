@@ -1646,6 +1646,25 @@ class TNavigator(object):
         self._go(distance)
     
     def 向前(self, distance):
+        """讓海龜向前移動distance距離.
+
+        別名: forward | fd
+
+        引數:
+        distance -- 數字 (整數或浮點數 )
+
+        以原有的方向，讓海龜向前移動distance距離
+
+        範例 (turtle是物件Turtle的實體):
+        >>> turtle.位置()
+        (0.00, 0.00)
+        >>> turtle.向前(25)
+        >>> turtle.位置()
+        (25.00,0.00)
+        >>> turtle.向前(-75)
+        >>> turtle.位置()
+        (-50.00,0.00)
+        """
         self._go(distance)
 
     def back(self, distance):
@@ -4264,14 +4283,25 @@ if __name__ == "__main__":
         tri.onclick(baba, 1)
 
     def demo3():
+        速度(8)
+        畫筆顏色('blue')
+        填充顏色(255,122,0)
+        停筆()
+        定位到(-100, 100)
+        下筆()
+        面朝角度(90)
         開始填色()
         for i in range(5):
             向前(50)
             左轉(90)
+            停筆()
             向後(50)
             右轉(90)
+            下筆()
         定位到(0, 0)
         停止填色()
+        print(位置())
+        print(下筆嗎())
         
 
     #demo1()
