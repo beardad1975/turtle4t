@@ -1688,6 +1688,23 @@ class TNavigator(object):
         self._go(-distance)
 
     def 向後(self, distance):
+        """讓海龜向後移動distance距離.
+
+        別名: back | backward | bk
+
+        引數:
+        distance -- 數字
+
+        讓海龜向後移動distance距離 ,往海龜目前方向的反向做移動.
+        完成後並不會改變海龜的原有方向.
+
+        範例 (假設turtle是物件Turtle的實體):
+        >>> turtle.位置()
+        (0.00, 0.00)
+        >>> turtle.向後(30)
+        >>> turtle.位置()
+        (-30.00, 0.00)
+        """        
         self._go(-distance)
 
     def right(self, angle):
