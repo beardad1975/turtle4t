@@ -136,8 +136,9 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'setundobuffer', 'setx', 'sety', 'shape', 'shapesize', 'shapetransform', 'shearfactor', 'showturtle',
         'speed', 'st', 'stamp', 'tilt', 'tiltangle', 'towards',
         'turtlesize', 'undo', 'undobufferentries', 'up', 'width',
-        'write', 'xcor', 'ycor', '向前', '向後', '右轉', '左轉', '位置', '定位到',
-        '面朝角度', '畫筆尺寸', '停筆', '下筆', '下筆嗎', '畫筆顏色', '填充顏色',
+        'write', 'xcor', 'ycor', '向前', '向後', '右轉', '左轉', '位置', '走到',
+        '設定方向', '方向', '畫筆尺寸', '停筆', '下筆', '下筆嗎', '畫筆顏色',
+        '填充顏色',
         '速度', '開始填色', '停止填色',
         ]
 
@@ -1840,7 +1841,7 @@ class TNavigator(object):
         else:
             self._goto(Vec2D(x, y))
 
-    def 定位到(self, x, y=None):
+    def 走到(self, x, y=None):
         if y is None:
             self._goto(Vec2D(*x))
         else:
@@ -1986,6 +1987,11 @@ class TNavigator(object):
         result /= self._degreesPerAU
         return (self._angleOffset + self._angleOrient*result) % self._fullcircle
 
+    def 方向(self):
+        x, y = self._orient
+        result = round(math.atan2(y, x)*180.0/math.pi, 10) % 360.0
+        result /= self._degreesPerAU
+        return (self._angleOffset + self._angleOrient*result) % self._fullcircle
 
     def setheading(self, to_angle):
         """Set the orientation of the turtle to to_angle.
@@ -2015,7 +2021,7 @@ class TNavigator(object):
         angle = (angle+full/2.)%full - full/2.
         self._rotate(angle)
 
-    def 面朝角度(self, to_angle):
+    def 設定方向(self, to_angle):
         angle = (to_angle - self.heading())*self._angleOrient
         full = self._fullcircle
         angle = (angle+full/2.)%full - full/2.
