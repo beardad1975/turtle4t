@@ -123,7 +123,9 @@ _tg_screen_functions = ['addshape', 'bgcolor', 'bgpic', 'bye',
         'onkey', 'onkeypress', 'onkeyrelease', 'onscreenclick', 'ontimer',
         'register_shape', 'resetscreen', 'screensize', 'setup',
         'setworldcoordinates', 'textinput', 'title', 'tracer', 'turtles', 'update',
-        'window_height', 'window_width']
+        'window_height', 'window_width',
+        '滑鼠點擊螢幕時','鍵盤按下時',
+        ]
 _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'circle', 'clear', 'clearstamp', 'clearstamps', 'clone', 'color',
         'degrees', 'distance', 'dot', 'down', 'end_fill', 'end_poly', 'fd',
@@ -139,7 +141,8 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'write', 'xcor', 'ycor', '向前', '向後', '右轉', '左轉', '位置', '走到',
         '設定方向', '方向', '畫筆尺寸', '停筆', '下筆', '下筆嗎', '畫筆顏色',
         '填充顏色','x座標','y座標','x設為','y設為',
-        '速度', '開始填色', '停止填色',
+        '速度', '開始填色', '停止填色','滑鼠點擊時','滑鼠放開時','滑鼠拖曳時',
+        '隱藏海龜','顯示海龜',
         ]
 
 _tg_utilities = ['write_docstringdict', 'done']
@@ -668,6 +671,24 @@ class TurtleScreenBase(object):
             self.cv.tag_bind(item, "<Button%s-Motion>" % num, eventfun, add)
 
     def _onscreenclick(self, fun, num=1, add=None):
+        """Bind fun to mouse-click event on canvas.
+        fun must be a function with two arguments, the coordinates
+        of the clicked point on the canvas.
+        num, the number of the mouse-button defaults to 1
+
+        If a turtle is clicked, first _onclick-event will be performed,
+        then _onscreensclick-event.
+        """
+        if fun is None:
+            self.cv.unbind("<Button-%s>" % num)
+        else:
+            def eventfun(event):
+                x, y = (self.cv.canvasx(event.x)/self.xscale,
+                        -self.cv.canvasy(event.y)/self.yscale)
+                fun(x, y)
+            self.cv.bind("<Button-%s>" % num, eventfun, add)
+
+    def 滑鼠點擊螢幕時(self, fun, num=1, add=None):
         """Bind fun to mouse-click event on canvas.
         fun must be a function with two arguments, the coordinates
         of the clicked point on the canvas.
@@ -1404,6 +1425,38 @@ class TurtleScreen(TurtleScreenBase):
         self._onkeyrelease(fun, key)
 
     def onkeypress(self, fun, key=None):
+        """Bind fun to key-press event of key if key is given,
+        or to any key-press-event if no key is given.
+
+        Arguments:
+        fun -- a function with no arguments
+        key -- a string: key (e.g. "a") or key-symbol (e.g. "space")
+
+        In order to be able to register key-events, TurtleScreen
+        must have focus. (See method listen.)
+
+        Example (for a TurtleScreen instance named screen
+        and a Turtle instance named turtle):
+
+        >>> def f():
+        ...     fd(50)
+        ...     lt(60)
+        ...
+        >>> screen.onkeypress(f, "Up")
+        >>> screen.listen()
+
+        Subsequently the turtle can be moved by repeatedly pressing
+        the up-arrow key, or by keeping pressed the up-arrow key.
+        consequently drawing a hexagon.
+        """
+        if fun is None:
+            if key in self._keys:
+                self._keys.remove(key)
+        elif key is not None and key not in self._keys:
+            self._keys.append(key)
+        self._onkeypress(fun, key)
+
+    def 鍵盤按下時(self, fun, key=None):
         """Bind fun to key-press event of key if key is given,
         or to any key-press-event if no key is given.
 
@@ -2505,7 +2558,36 @@ class TPen(object):
         """
         self.pen(shown=True)
 
+    def 顯示海龜(self):
+        """Makes the turtle visible.
+
+        Aliases: showturtle | st
+
+        No argument.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.hideturtle()
+        >>> turtle.showturtle()
+        """
+        self.pen(shown=True)
+
     def hideturtle(self):
+        """Makes the turtle invisible.
+
+        Aliases: hideturtle | ht
+
+        No argument.
+
+        It's a good idea to do this while you're in the
+        middle of a complicated drawing, because hiding
+        the turtle speeds up the drawing observably.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.hideturtle()
+        """
+        self.pen(shown=False)
+
+    def 隱藏海龜(self):
         """Makes the turtle invisible.
 
         Aliases: hideturtle | ht
@@ -3760,7 +3842,55 @@ class RawTurtle(TPen, TNavigator):
         self.screen._onclick(self.turtle._item, fun, btn, add)
         self._update()
 
+    def 滑鼠點擊時(self, fun, btn=1, add=None):
+        """Bind fun to mouse-click event on this turtle on canvas.
+
+        Arguments:
+        fun --  a function with two arguments, to which will be assigned
+                the coordinates of the clicked point on the canvas.
+        btn --  number of the mouse-button defaults to 1 (left mouse button).
+        add --  True or False. If True, new binding will be added, otherwise
+                it will replace a former binding.
+
+        Example for the anonymous turtle, i. e. the procedural way:
+
+        >>> def turn(x, y):
+        ...     left(360)
+        ...
+        >>> onclick(turn)  # Now clicking into the turtle will turn it.
+        >>> onclick(None)  # event-binding will be removed
+        """
+        self.screen._onclick(self.turtle._item, fun, btn, add)
+        self._update()
+
+
+
     def onrelease(self, fun, btn=1, add=None):
+        """Bind fun to mouse-button-release event on this turtle on canvas.
+
+        Arguments:
+        fun -- a function with two arguments, to which will be assigned
+                the coordinates of the clicked point on the canvas.
+        btn --  number of the mouse-button defaults to 1 (left mouse button).
+
+        Example (for a MyTurtle instance named joe):
+        >>> class MyTurtle(Turtle):
+        ...     def glow(self,x,y):
+        ...             self.fillcolor("red")
+        ...     def unglow(self,x,y):
+        ...             self.fillcolor("")
+        ...
+        >>> joe = MyTurtle()
+        >>> joe.onclick(joe.glow)
+        >>> joe.onrelease(joe.unglow)
+
+        Clicking on joe turns fillcolor red, unclicking turns it to
+        transparent.
+        """
+        self.screen._onrelease(self.turtle._item, fun, btn, add)
+        self._update()
+
+    def 滑鼠放開時(self, fun, btn=1, add=None):
         """Bind fun to mouse-button-release event on this turtle on canvas.
 
         Arguments:
@@ -3805,6 +3935,25 @@ class RawTurtle(TPen, TNavigator):
         """
         self.screen._ondrag(self.turtle._item, fun, btn, add)
 
+    def 滑鼠拖曳時(self, fun, btn=1, add=None):
+        """Bind fun to mouse-move event on this turtle on canvas.
+
+        Arguments:
+        fun -- a function with two arguments, to which will be assigned
+               the coordinates of the clicked point on the canvas.
+        btn -- number of the mouse-button defaults to 1 (left mouse button).
+
+        Every sequence of mouse-move-events on a turtle is preceded by a
+        mouse-click event on that turtle.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.ondrag(turtle.goto)
+
+        Subsequently clicking and dragging a Turtle will move it
+        across the screen thereby producing handdrawings (if pen is
+        down).
+        """
+        self.screen._ondrag(self.turtle._item, fun, btn, add)
 
     def _undo(self, action, data):
         """Does the main part of the work for undo()
