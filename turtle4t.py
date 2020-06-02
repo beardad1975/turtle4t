@@ -124,7 +124,7 @@ _tg_screen_functions = ['addshape', 'bgcolor', 'bgpic', 'bye',
         'register_shape', 'resetscreen', 'screensize', 'setup',
         'setworldcoordinates', 'textinput', 'title', 'tracer', 'turtles', 'update',
         'window_height', 'window_width',
-        '滑鼠點擊螢幕時','鍵盤按下時',
+        '滑鼠點擊螢幕時','鍵盤按下時','監聽',
         ]
 _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'circle', 'clear', 'clearstamp', 'clearstamps', 'clone', 'color',
@@ -1489,6 +1489,18 @@ class TurtleScreen(TurtleScreenBase):
         self._onkeypress(fun, key)
 
     def listen(self, xdummy=None, ydummy=None):
+        """Set focus on TurtleScreen (in order to collect key-events)
+
+        No arguments.
+        Dummy arguments are provided in order
+        to be able to pass listen to the onclick method.
+
+        Example (for a TurtleScreen instance named screen):
+        >>> screen.listen()
+        """
+        self._listen()
+
+    def 監聽(self, xdummy=None, ydummy=None):
         """Set focus on TurtleScreen (in order to collect key-events)
 
         No arguments.
