@@ -142,7 +142,7 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         '設定方向', '方向', '畫筆尺寸', '停筆', '下筆', '下筆嗎', '畫筆顏色',
         '填充顏色','x座標','y座標','x設為','y設為',
         '速度', '開始填色', '停止填色','滑鼠點擊時','滑鼠放開時','滑鼠拖曳時',
-        '隱藏海龜','顯示海龜',
+        '隱藏海龜','顯示海龜','筆跡清除','回出發點',
         ]
 
 _tg_utilities = ['write_docstringdict', 'done']
@@ -1579,6 +1579,7 @@ class TurtleScreen(TurtleScreenBase):
     onscreenclick = onclick
     resetscreen = reset
     clearscreen = clear
+    
     addshape = register_shape
     onkeyrelease = onkey
 
@@ -1951,7 +1952,19 @@ class TNavigator(object):
         self.goto(0, 0)
         self.setheading(0)
 
+    def 回出發點(self):
+        """Move turtle to the origin - coordinates (0,0).
 
+        No arguments.
+
+        Move turtle to the origin - coordinates (0,0) and set its
+        heading to its start-orientation (which depends on mode).
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.home()
+        """
+        self.goto(0, 0)
+        self.setheading(0)
 
     def setx(self, x):
         """Set the turtle's first coordinate to x
@@ -2922,6 +2935,21 @@ class RawTurtle(TPen, TNavigator):
 
 
     def clear(self):
+        """Delete the turtle's drawings from the screen. Do not move turtle.
+
+        No arguments.
+
+        Delete the turtle's drawings from the screen. Do not move turtle.
+        State and position of the turtle as well as drawings of other
+        turtles are not affected.
+
+        Examples (for a Turtle instance named turtle):
+        >>> turtle.clear()
+        """
+        self._clear()
+        self._update()
+
+    def 筆跡清除(self):
         """Delete the turtle's drawings from the screen. Do not move turtle.
 
         No arguments.
