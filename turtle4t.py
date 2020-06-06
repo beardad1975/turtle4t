@@ -124,7 +124,7 @@ _tg_screen_functions = ['addshape', 'bgcolor', 'bgpic', 'bye',
         'register_shape', 'resetscreen', 'screensize', 'setup',
         'setworldcoordinates', 'textinput', 'title', 'tracer', 'turtles', 'update',
         'window_height', 'window_width',
-        '滑鼠點擊螢幕時','鍵盤按下時','監聽',
+        '滑鼠點擊螢幕時','鍵盤按下時','監聽', '螢幕大小', '背景顏色',
         ]
 _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'circle', 'clear', 'clearstamp', 'clearstamps', 'clone', 'color',
@@ -142,7 +142,7 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         '設定方向', '方向', '畫筆尺寸', '停筆', '下筆', '下筆嗎', '畫筆顏色',
         '填充顏色','x座標','y座標','x設為','y設為',
         '速度', '開始填色', '停止填色','滑鼠點擊時','滑鼠放開時','滑鼠拖曳時',
-        '隱藏海龜','顯示海龜','筆跡清除','回出發點',
+        '隱藏海龜','顯示海龜','筆跡清除','回出發點','畫圓','畫點',
         ]
 
 _tg_utilities = ['write_docstringdict', 'done']
@@ -1273,6 +1273,30 @@ class TurtleScreen(TurtleScreenBase):
             color = self._color(color)
         return color
 
+    def 背景顏色(self, *args):
+        """Set or return backgroundcolor of the TurtleScreen.
+
+        Arguments (if given): a color string or three numbers
+        in the range 0..colormode or a 3-tuple of such numbers.
+
+        Example (for a TurtleScreen instance named screen):
+        >>> screen.bgcolor("orange")
+        >>> screen.bgcolor()
+        'orange'
+        >>> screen.bgcolor(0.5,0,0.5)
+        >>> screen.bgcolor()
+        '#800080'
+        """
+        if args:
+            color = self._colorstr(args)
+        else:
+            color = None
+        color = self._bgcolor(color)
+        if color is not None:
+            color = self._color(color)
+        return color
+
+
     def tracer(self, n=None, delay=None):
         """Turns turtle animation on/off and set delay for update drawings.
 
@@ -1575,6 +1599,26 @@ class TurtleScreen(TurtleScreenBase):
         >>> # e.g. to search for an erroneously escaped turtle ;-)
         """
         return self._resize(canvwidth, canvheight, bg)
+
+    def 螢幕大小(self, canvwidth=None, canvheight=None, bg=None):
+        """Resize the canvas the turtles are drawing on.
+
+        Optional arguments:
+        canvwidth -- positive integer, new width of canvas in pixels
+        canvheight --  positive integer, new height of canvas in pixels
+        bg -- colorstring or color-tuple, new backgroundcolor
+        If no arguments are given, return current (canvaswidth, canvasheight)
+
+        Do not alter the drawing window. To observe hidden parts of
+        the canvas use the scrollbars. (Can make visible those parts
+        of a drawing, which were outside the canvas before!)
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.screensize(2000,1500)
+        >>> # e.g. to search for an erroneously escaped turtle ;-)
+        """
+        return self._resize(canvwidth, canvheight, bg)
+
 
     onscreenclick = onclick
     resetscreen = reset
@@ -2226,6 +2270,68 @@ class TNavigator(object):
         if self.undobuffer:
             self.undobuffer.cumulate = False
 
+    def 畫圓(self, radius, extent = None, steps = None):
+        """ Draw a circle with given radius.
+
+        Arguments:
+        radius -- a number
+        extent (optional) -- a number
+        steps (optional) -- an integer
+
+        Draw a circle with given radius. The center is radius units left
+        of the turtle; extent - an angle - determines which part of the
+        circle is drawn. If extent is not given, draw the entire circle.
+        If extent is not a full circle, one endpoint of the arc is the
+        current pen position. Draw the arc in counterclockwise direction
+        if radius is positive, otherwise in clockwise direction. Finally
+        the direction of the turtle is changed by the amount of extent.
+
+        As the circle is approximated by an inscribed regular polygon,
+        steps determines the number of steps to use. If not given,
+        it will be calculated automatically. Maybe used to draw regular
+        polygons.
+
+        call: circle(radius)                  # full circle
+        --or: circle(radius, extent)          # arc
+        --or: circle(radius, extent, steps)
+        --or: circle(radius, steps=6)         # 6-sided polygon
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.circle(50)
+        >>> turtle.circle(120, 180)  # semicircle
+        """
+        if self.undobuffer:
+            self.undobuffer.push(["seq"])
+            self.undobuffer.cumulate = True
+        speed = self.speed()
+        if extent is None:
+            extent = self._fullcircle
+        if steps is None:
+            frac = abs(extent)/self._fullcircle
+            steps = 1+int(min(11+abs(radius)/6.0, 59.0)*frac)
+        w = 1.0 * extent / steps
+        w2 = 0.5 * w
+        l = 2.0 * radius * math.sin(w2*math.pi/180.0*self._degreesPerAU)
+        if radius < 0:
+            l, w, w2 = -l, -w, -w2
+        tr = self._tracer()
+        dl = self._delay()
+        if speed == 0:
+            self._tracer(0, 0)
+        else:
+            self.speed(0)
+        self._rotate(w2)
+        for i in range(steps):
+            self.speed(speed)
+            self._go(l)
+            self.speed(0)
+            self._rotate(w)
+        self._rotate(-w2)
+        if speed == 0:
+            self._tracer(tr, dl)
+        self.speed(speed)
+        if self.undobuffer:
+            self.undobuffer.cumulate = False
 
 
 ## three dummy methods to be implemented by child class:
@@ -3736,6 +3842,55 @@ class RawTurtle(TPen, TNavigator):
                 self.pen(pen)
             if self.undobuffer:
                 self.undobuffer.cumulate = False
+
+    def 畫點(self, size=None, *color):
+        """Draw a dot with diameter size, using color.
+
+        Optional arguments:
+        size -- an integer >= 1 (if given)
+        color -- a colorstring or a numeric color tuple
+
+        Draw a circular dot with diameter size, using color.
+        If size is not given, the maximum of pensize+4 and 2*pensize is used.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.dot()
+        >>> turtle.fd(50); turtle.dot(20, "blue"); turtle.fd(50)
+        """
+        if not color:
+            if isinstance(size, (str, tuple)):
+                color = self._colorstr(size)
+                size = self._pensize + max(self._pensize, 4)
+            else:
+                color = self._pencolor
+                if not size:
+                    size = self._pensize + max(self._pensize, 4)
+        else:
+            if size is None:
+                size = self._pensize + max(self._pensize, 4)
+            color = self._colorstr(color)
+        if hasattr(self.screen, "_dot"):
+            item = self.screen._dot(self._position, size, color)
+            self.items.append(item)
+            if self.undobuffer:
+                self.undobuffer.push(("dot", item))
+        else:
+            pen = self.pen()
+            if self.undobuffer:
+                self.undobuffer.push(["seq"])
+                self.undobuffer.cumulate = True
+            try:
+                if self.resizemode() == 'auto':
+                    self.ht()
+                self.pendown()
+                self.pensize(size)
+                self.pencolor(color)
+                self.forward(0)
+            finally:
+                self.pen(pen)
+            if self.undobuffer:
+                self.undobuffer.cumulate = False
+
 
     def _write(self, txt, align, font):
         """Performs the writing for write()
