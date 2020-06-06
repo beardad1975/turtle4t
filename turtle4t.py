@@ -124,7 +124,7 @@ _tg_screen_functions = ['addshape', 'bgcolor', 'bgpic', 'bye',
         'register_shape', 'resetscreen', 'screensize', 'setup',
         'setworldcoordinates', 'textinput', 'title', 'tracer', 'turtles', 'update',
         'window_height', 'window_width',
-        '滑鼠點擊螢幕時','鍵盤按下時','監聽', '螢幕大小', '背景顏色',
+        '滑鼠點擊螢幕時','鍵盤按下時','監聽', '畫布大小', '背景顏色',
         ]
 _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'circle', 'clear', 'clearstamp', 'clearstamps', 'clone', 'color',
@@ -1600,7 +1600,7 @@ class TurtleScreen(TurtleScreenBase):
         """
         return self._resize(canvwidth, canvheight, bg)
 
-    def 螢幕大小(self, canvwidth=None, canvheight=None, bg=None):
+    def 畫布大小(self, canvwidth=None, canvheight=None, bg=None):
         """Resize the canvas the turtles are drawing on.
 
         Optional arguments:
