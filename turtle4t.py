@@ -142,7 +142,7 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         '設定方向', '方向', '畫筆尺寸', '停筆', '下筆', '下筆嗎', '畫筆顏色',
         '填充顏色','x座標','y座標','x設為','y設為',
         '速度', '開始填色', '停止填色','滑鼠點擊時','滑鼠放開時','滑鼠拖曳時',
-        '隱藏海龜','顯示海龜','筆跡清除','回出發點','畫圓','畫點',
+        '隱藏海龜','顯示海龜','筆跡清除','回出發點','畫圓','畫點','寫字',
         ]
 
 _tg_utilities = ['write_docstringdict', 'done']
@@ -3903,6 +3903,35 @@ class RawTurtle(TPen, TNavigator):
         return end
 
     def write(self, arg, move=False, align="left", font=("Arial", 8, "normal")):
+        """Write text at the current turtle position.
+
+        Arguments:
+        arg -- info, which is to be written to the TurtleScreen
+        move (optional) -- True/False
+        align (optional) -- one of the strings "left", "center" or right"
+        font (optional) -- a triple (fontname, fontsize, fonttype)
+
+        Write text - the string representation of arg - at the current
+        turtle position according to align ("left", "center" or right")
+        and with the given font.
+        If move is True, the pen is moved to the bottom-right corner
+        of the text. By default, move is False.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.write('Home = ', True, align="center")
+        >>> turtle.write((0,0), True)
+        """
+        if self.undobuffer:
+            self.undobuffer.push(["seq"])
+            self.undobuffer.cumulate = True
+        end = self._write(str(arg), align.lower(), font)
+        if move:
+            x, y = self.pos()
+            self.setpos(end, y)
+        if self.undobuffer:
+            self.undobuffer.cumulate = False
+
+    def 寫字(self, arg, move=False, align="left", font=("Arial", 8, "normal")):
         """Write text at the current turtle position.
 
         Arguments:
