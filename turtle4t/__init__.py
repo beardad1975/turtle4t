@@ -1,4 +1,5 @@
-#
+# modified by Wen-Hung, Chang 2020 
+
 # turtle.py: a Tkinter based turtle graphics module for Python
 # Version 1.1b - 4. 5. 2009
 #
