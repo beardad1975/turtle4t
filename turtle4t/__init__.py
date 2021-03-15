@@ -125,7 +125,7 @@ _tg_screen_functions = ['addshape', 'bgcolor', 'bgpic', 'bye',
         'register_shape', 'resetscreen', 'screensize', 'setup',
         'setworldcoordinates', 'textinput', 'title', 'tracer', 'turtles', 'update',
         'window_height', 'window_width',
-        '滑鼠點擊螢幕時','鍵盤按下時','監聽', '畫布大小', '背景顏色',
+        '滑鼠點擊螢幕時','鍵盤按下時','監聽', '畫布大小', '背景顏色','視窗設定',
         ]
 _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'circle', 'clear', 'clearstamp', 'clearstamps', 'clone', 'color',
@@ -143,7 +143,8 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         '設定方向', '方向', '畫筆尺寸', '停筆', '下筆', '下筆嗎', '畫筆顏色',
         '填充顏色','x座標','y座標','x設為','y設為',
         '速度', '開始填色', '停止填色','滑鼠點擊時','滑鼠放開時','滑鼠拖曳時',
-        '隱藏海龜','顯示海龜','筆跡清除','回出發點','畫圓','畫點','寫字',
+        '隱藏游標','顯示游標','筆跡清除','回出發點','畫圓','畫點','寫字','游標形狀','游標大小',
+        '畫弧',
         ]
 
 _tg_utilities = ['write_docstringdict', 'done']
@@ -2334,6 +2335,68 @@ class TNavigator(object):
         if self.undobuffer:
             self.undobuffer.cumulate = False
 
+    def 畫弧(self, radius, extent = None, steps = None):
+        """ Draw a circle with given radius.
+
+        Arguments:
+        radius -- a number
+        extent (optional) -- a number
+        steps (optional) -- an integer
+
+        Draw a circle with given radius. The center is radius units left
+        of the turtle; extent - an angle - determines which part of the
+        circle is drawn. If extent is not given, draw the entire circle.
+        If extent is not a full circle, one endpoint of the arc is the
+        current pen position. Draw the arc in counterclockwise direction
+        if radius is positive, otherwise in clockwise direction. Finally
+        the direction of the turtle is changed by the amount of extent.
+
+        As the circle is approximated by an inscribed regular polygon,
+        steps determines the number of steps to use. If not given,
+        it will be calculated automatically. Maybe used to draw regular
+        polygons.
+
+        call: circle(radius)                  # full circle
+        --or: circle(radius, extent)          # arc
+        --or: circle(radius, extent, steps)
+        --or: circle(radius, steps=6)         # 6-sided polygon
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.circle(50)
+        >>> turtle.circle(120, 180)  # semicircle
+        """
+        if self.undobuffer:
+            self.undobuffer.push(["seq"])
+            self.undobuffer.cumulate = True
+        speed = self.speed()
+        if extent is None:
+            extent = self._fullcircle
+        if steps is None:
+            frac = abs(extent)/self._fullcircle
+            steps = 1+int(min(11+abs(radius)/6.0, 59.0)*frac)
+        w = 1.0 * extent / steps
+        w2 = 0.5 * w
+        l = 2.0 * radius * math.sin(w2*math.pi/180.0*self._degreesPerAU)
+        if radius < 0:
+            l, w, w2 = -l, -w, -w2
+        tr = self._tracer()
+        dl = self._delay()
+        if speed == 0:
+            self._tracer(0, 0)
+        else:
+            self.speed(0)
+        self._rotate(w2)
+        for i in range(steps):
+            self.speed(speed)
+            self._go(l)
+            self.speed(0)
+            self._rotate(w)
+        self._rotate(-w2)
+        if speed == 0:
+            self._tracer(tr, dl)
+        self.speed(speed)
+        if self.undobuffer:
+            self.undobuffer.cumulate = False
 
 ## three dummy methods to be implemented by child class:
 
@@ -2690,7 +2753,7 @@ class TPen(object):
         """
         self.pen(shown=True)
 
-    def 顯示海龜(self):
+    def 顯示游標(self):
         """Makes the turtle visible.
 
         Aliases: showturtle | st
@@ -2719,7 +2782,7 @@ class TPen(object):
         """
         self.pen(shown=False)
 
-    def 隱藏海龜(self):
+    def 隱藏游標(self):
         """Makes the turtle invisible.
 
         Aliases: hideturtle | ht
@@ -3206,7 +3269,75 @@ class RawTurtle(TPen, TNavigator):
         self.turtle._setshape(name)
         self._update()
 
+    def 游標形狀(self, name=None):
+        """Set turtle shape to shape with given name / return current shapename.
+
+        Optional argument:
+        name -- a string, which is a valid shapename
+
+        Set turtle shape to shape with given name or, if name is not given,
+        return name of current shape.
+        Shape with name must exist in the TurtleScreen's shape dictionary.
+        Initially there are the following polygon shapes:
+        'arrow', 'turtle', 'circle', 'square', 'triangle', 'classic'.
+        To learn about how to deal with shapes see Screen-method register_shape.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.shape()
+        'arrow'
+        >>> turtle.shape("turtle")
+        >>> turtle.shape()
+        'turtle'
+        """
+        if name is None:
+            return self.turtle.shapeIndex
+        if not name in self.screen.getshapes():
+            raise TurtleGraphicsError("There is no shape named %s" % name)
+        self.turtle._setshape(name)
+        self._update()
+
+
     def shapesize(self, stretch_wid=None, stretch_len=None, outline=None):
+        """Set/return turtle's stretchfactors/outline. Set resizemode to "user".
+
+        Optional arguments:
+           stretch_wid : positive number
+           stretch_len : positive number
+           outline  : positive number
+
+        Return or set the pen's attributes x/y-stretchfactors and/or outline.
+        Set resizemode to "user".
+        If and only if resizemode is set to "user", the turtle will be displayed
+        stretched according to its stretchfactors:
+        stretch_wid is stretchfactor perpendicular to orientation
+        stretch_len is stretchfactor in direction of turtles orientation.
+        outline determines the width of the shapes's outline.
+
+        Examples (for a Turtle instance named turtle):
+        >>> turtle.resizemode("user")
+        >>> turtle.shapesize(5, 5, 12)
+        >>> turtle.shapesize(outline=8)
+        """
+        if stretch_wid is stretch_len is outline is None:
+            stretch_wid, stretch_len = self._stretchfactor
+            return stretch_wid, stretch_len, self._outlinewidth
+        if stretch_wid == 0 or stretch_len == 0:
+            raise TurtleGraphicsError("stretch_wid/stretch_len must not be zero")
+        if stretch_wid is not None:
+            if stretch_len is None:
+                stretchfactor = stretch_wid, stretch_wid
+            else:
+                stretchfactor = stretch_wid, stretch_len
+        elif stretch_len is not None:
+            stretchfactor = self._stretchfactor[0], stretch_len
+        else:
+            stretchfactor = self._stretchfactor
+        if outline is None:
+            outline = self._outlinewidth
+        self.pen(resizemode="user",
+                 stretchfactor=stretchfactor, outline=outline)
+
+    def 游標大小(self, stretch_wid=None, stretch_len=None, outline=None):
         """Set/return turtle's stretchfactors/outline. Set resizemode to "user".
 
         Optional arguments:
@@ -4322,6 +4453,47 @@ class _Screen(TurtleScreen):
             starty = (sh - height) / 2
         self._root.set_geometry(width, height, startx, starty)
         self.update()
+
+    def 視窗設定(self, width=_CFG["width"], height=_CFG["height"],
+              startx=_CFG["leftright"], starty=_CFG["topbottom"]):
+        """ Set the size and position of the main window.
+
+        Arguments:
+        width: as integer a size in pixels, as float a fraction of the screen.
+          Default is 50% of screen.
+        height: as integer the height in pixels, as float a fraction of the
+          screen. Default is 75% of screen.
+        startx: if positive, starting position in pixels from the left
+          edge of the screen, if negative from the right edge
+          Default, startx=None is to center window horizontally.
+        starty: if positive, starting position in pixels from the top
+          edge of the screen, if negative from the bottom edge
+          Default, starty=None is to center window vertically.
+
+        Examples (for a Screen instance named screen):
+        >>> screen.setup (width=200, height=200, startx=0, starty=0)
+
+        sets window to 200x200 pixels, in upper left of screen
+
+        >>> screen.setup(width=.75, height=0.5, startx=None, starty=None)
+
+        sets window to 75% of screen by 50% of screen and centers
+        """
+        if not hasattr(self._root, "set_geometry"):
+            return
+        sw = self._root.win_width()
+        sh = self._root.win_height()
+        if isinstance(width, float) and 0 <= width <= 1:
+            width = sw*width
+        if startx is None:
+            startx = (sw - width) / 2
+        if isinstance(height, float) and 0 <= height <= 1:
+            height = sh*height
+        if starty is None:
+            starty = (sh - height) / 2
+        self._root.set_geometry(width, height, startx, starty)
+        self.update()
+
 
     def title(self, titlestring):
         """Set title of turtle-window
