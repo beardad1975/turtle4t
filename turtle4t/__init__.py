@@ -125,7 +125,8 @@ _tg_screen_functions = ['addshape', 'bgcolor', 'bgpic', 'bye',
         'register_shape', 'resetscreen', 'screensize', 'setup',
         'setworldcoordinates', 'textinput', 'title', 'tracer', 'turtles', 'update',
         'window_height', 'window_width',
-        '滑鼠點擊螢幕時','鍵盤按下時','監聽', '畫布大小', '背景顏色','視窗設定',
+        '滑鼠點擊螢幕時','鍵盤按下時','監聽', '畫布大小', '背景顏色','視窗設定', '點擊後離開',
+        '輸入文字', '輸入數字',
         ]
 _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         'circle', 'clear', 'clearstamp', 'clearstamps', 'clone', 'color',
@@ -147,7 +148,7 @@ _tg_turtle_functions = ['back', 'backward', 'begin_fill', 'begin_poly', 'bk',
         '畫弧',
         ]
 
-_tg_utilities = ['write_docstringdict', 'done']
+_tg_utilities = ['write_docstringdict', 'done', '完成']
 
 
 
@@ -860,6 +861,22 @@ class TurtleScreenBase(object):
         """
         return simpledialog.askstring(title, prompt)
 
+    def 輸入文字(self, title, prompt):
+        """Pop up a dialog window for input of a string.
+
+        Arguments: title is the title of the dialog window,
+        prompt is a text mostly describing what information to input.
+
+        Return the string input
+        If the dialog is canceled, return None.
+
+        Example (for a TurtleScreen instance named screen):
+        >>> screen.textinput("NIM", "Name of first player:")
+
+        """
+        return simpledialog.askstring(title, prompt)
+
+
     def numinput(self, title, prompt, default=None, minval=None, maxval=None):
         """Pop up a dialog window for input of a number.
 
@@ -881,6 +898,26 @@ class TurtleScreenBase(object):
         return simpledialog.askfloat(title, prompt, initialvalue=default,
                                      minvalue=minval, maxvalue=maxval)
 
+    def 輸入數字(self, title, prompt, default=None, minval=None, maxval=None):
+        """Pop up a dialog window for input of a number.
+
+        Arguments: title is the title of the dialog window,
+        prompt is a text mostly describing what numerical information to input.
+        default: default value
+        minval: minimum value for imput
+        maxval: maximum value for input
+
+        The number input must be in the range minval .. maxval if these are
+        given. If not, a hint is issued and the dialog remains open for
+        correction. Return the number input.
+        If the dialog is canceled,  return None.
+
+        Example (for a TurtleScreen instance named screen):
+        >>> screen.numinput("Poker", "Your stakes:", 1000, minval=10, maxval=10000)
+
+        """
+        return simpledialog.askfloat(title, prompt, initialvalue=default,
+                                     minvalue=minval, maxvalue=maxval)
 
 ##############################################################################
 ###                  End of Tkinter - interface                            ###
@@ -4560,6 +4597,38 @@ class _Screen(TurtleScreen):
         except AttributeError:
             exit(0)
 
+    def 點擊後離開(self):
+        """Go into mainloop until the mouse is clicked.
+
+        No arguments.
+
+        Bind bye() method to mouseclick on TurtleScreen.
+        If "using_IDLE" - value in configuration dictionary is False
+        (default value), enter mainloop.
+        If IDLE with -n switch (no subprocess) is used, this value should be
+        set to True in turtle.cfg. In this case IDLE's mainloop
+        is active also for the client script.
+
+        This is a method of the Screen-class and not available for
+        TurtleScreen instances.
+
+        Example (for a Screen instance named screen):
+        >>> screen.exitonclick()
+
+        """
+        def exitGracefully(x, y):
+            """Screen.bye() with two dummy-parameters"""
+            self.bye()
+        self.onclick(exitGracefully)
+        if _CFG["using_IDLE"]:
+            return
+        try:
+            mainloop()
+        except AttributeError:
+            exit(0)
+
+
+
 class Turtle(RawTurtle):
     """RawTurtle auto-creating (scrolled) canvas.
 
@@ -4748,6 +4817,7 @@ _make_global_funcs(_tg_turtle_functions, Turtle,
 #####
 
 done = mainloop
+完成 = mainloop
 
 if __name__ == "__main__":
     def switchpen():
